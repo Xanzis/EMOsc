@@ -4,12 +4,12 @@ import numpy as np
 class Osc:
 	g = 9.8
 	nturns = 100
-	area = 0.025
+	area = 0.0028
 	muzero = 1.25 * 10 ** -6
 	br = 1.2 # or this
-	d = 0.03 # length of magnet. For these things, see my notes
-	r = 0.02
-	coilrad = 0.05
+	d = 0.0254 # length of magnet. For these things, see my notes
+	r = 0.011
+	coilrad = 0.03
 
 	def __init__(self, ks, ms, zstarts, vstarts, centers, coilr, connectr, timestep):
 		self.g = 9.8
@@ -23,9 +23,9 @@ class Osc:
 		self.step = timestep
 		self.fs = np.zeros((2,))
 		self.i = 0
-		self.q = 1 # magnetic charge at poles. No idea what this should be
+		self.q = 1000 # magnetic charge at poles. No idea what this should be
 		self.emfs = np.zeros((2,))
-		self.log = True
+		self.log = False
 
 	def calc_emfs(self):
 		part1 = ((Osc.d + self.zs) ** 3 - (Osc.d + self.zs) ** 4)/(Osc.r ** 2 + (Osc.d + self.zs) ** 2) ** 1.5
@@ -42,7 +42,10 @@ class Osc:
 		b = Osc.nturns * (Osc.muzero / (2)) * (Osc.coilrad ** 2 * self.i / (Osc.coilrad ** 2 + self.zs ** 2) ** 1.5)
 		bfar = Osc.nturns * (Osc.muzero / (2)) * (Osc.coilrad ** 2 * self.i / (Osc.coilrad ** 2 + (self.zs + Osc.d) ** 2) ** 1.5)
 		magforces = b * self.q + bfar * -1 * self.q
+		magforces *= [1, -1]
 #		print springforces, magforces
+		if self.log:
+			print "forces due to magnetism: ", magforces
 		self.fs = springforces + magforces
 
 	def propagate(self):
@@ -55,17 +58,19 @@ class Osc:
 		self.zs += deltaz
 
 def main():
-	oscillator = Osc([20, 20], [0.084, 0.084], [0.0, 0.03], [0, 0], [0.015, 0.015], 2, 0.1, 0.00001)
+	oscillator = Osc([20, 20], [0.084, 0.084], [0.0, 0.01], [0, 0.1], [0.0325, 0.0325], 2, 0.1, 0.0001)
 	record_a = []
 	record_b = []
 	record_i = []
 	for i in range(200000):
 		oscillator.propagate()
-		if i % 10 == 0:
+		oscillator.log = False
+		if i % 100 == 0:
 			record_a.append(oscillator.zs[0])
 			record_b.append(oscillator.zs[1])
 			record_i.append(oscillator.i)
 		if i % 10000 == 0:
+			oscillator.log = True
 			print "-----"
 			print "positions: ", oscillator.zs
 			print "velocities:", oscillator.vs
