@@ -9,7 +9,9 @@ class Osc:
 	br = 1.2 # or this
 	d = 0.0254 # length of magnet. For these things, see my notes
 	r = 0.011
+	rsquared = 0.011 ** 2
 	coilrad = 0.03
+	coilradsquared = 0.03 ** 2
 
 	def __init__(self, ks, ms, zstarts, vstarts, centers, coilr, connectr, timestep):
 		self.g = 9.8
@@ -28,22 +30,18 @@ class Osc:
 		self.log = False
 
 	def calc_emfs(self):
-		part1 = ((Osc.d + self.zs) ** 3 - (Osc.d + self.zs) ** 4)/(Osc.r ** 2 + (Osc.d + self.zs) ** 2) ** 1.5
-		part2 = (self.zs ** 3 - self.zs ** 4) / (Osc.r ** 2 + self.zs ** 2) ** 1.5
-		part3 = -1 * Osc.nturns * Osc.area * (Osc.br / 2) * (part1 - part2)
-#		print "part3: ", part3
+		part1 = ((Osc.d + self.zs) ** 3 - (Osc.d + self.zs) ** 4)/(Osc.rsquared + (Osc.d + self.zs) ** 2) ** 1.5
+		part2 = (self.zs ** 3 - self.zs ** 4) / (Osc.rsquared + self.zs ** 2) ** 1.5
+		part3 = Osc.nturns * Osc.area * Osc.br * 0.5 * (part2 - part1)
 		self.emfs = part3 * self.vs
 		self.i = -1 * (np.diff(self.emfs) / (self.coilr + self.connectr))
-#		print "emfs: ", self.emfs
-#		print "i: ", self.i
 
 	def calc_forces(self):
 		springforces = (self.ctrs - self.zs) * self.ks
-		b = Osc.nturns * (Osc.muzero / (2)) * (Osc.coilrad ** 2 * self.i / (Osc.coilrad ** 2 + self.zs ** 2) ** 1.5)
-		bfar = Osc.nturns * (Osc.muzero / (2)) * (Osc.coilrad ** 2 * self.i / (Osc.coilrad ** 2 + (self.zs + Osc.d) ** 2) ** 1.5)
-		magforces = b * self.q + bfar * -1 * self.q
+		b = Osc.nturns * Osc.muzero * 0.5 * (Osc.coilradsquared * self.i / (Osc.coilradsquared + self.zs ** 2) ** 1.5)
+		bfar = Osc.nturns * Osc.muzero * 0.5 * (Osc.coilradsquared * self.i / (Osc.coilradsquared + (self.zs + Osc.d) ** 2) ** 1.5)
+		magforces = b * self.q - bfar * self.q
 		magforces *= [1, -1]
-#		print springforces, magforces
 		if self.log:
 			print "forces due to magnetism: ", magforces
 		self.fs = springforces + magforces
@@ -58,7 +56,7 @@ class Osc:
 		self.zs += deltaz
 
 def main():
-	oscillator = Osc([20, 20], [0.084, 0.084], [0.0, 0.01], [0, 0.1], [0.0325, 0.0325], 2, 0.1, 0.0001)
+	oscillator = Osc([20, 20], [0.084, 0.09], [0.0, 0.0], [0, 0], [0.0325, 0.0325], 2, 0.1, 0.0001)
 	record_a = []
 	record_b = []
 	record_i = []
@@ -69,12 +67,12 @@ def main():
 			record_a.append(oscillator.zs[0])
 			record_b.append(oscillator.zs[1])
 			record_i.append(oscillator.i)
-		if i % 10000 == 0:
-			oscillator.log = True
-			print "-----"
-			print "positions: ", oscillator.zs
-			print "velocities:", oscillator.vs
-			print "forces:    ", oscillator.fs
+			if i % 10000 == 0:
+				oscillator.log = True
+				print "-----"
+				print "positions: ", oscillator.zs
+				print "velocities:", oscillator.vs
+				print "forces:    ", oscillator.fs
 	plt.plot(record_b)
 	plt.plot(record_a)
 	plt.show()
