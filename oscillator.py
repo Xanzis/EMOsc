@@ -6,8 +6,8 @@ class Osc:
 	nturns = 100
 	area = 0.0028
 	muzero = 1.25 * 10 ** -6
-	br = 1.2 # or this
-	d = 0.0254 # length of magnet. For these things, see my notes
+	br = 2.5 # or this
+	d = 0.03 # length of magnet. For these things, see my notes
 	r = 0.011
 	rsquared = 0.011 ** 2
 	coilrad = 0.03
@@ -34,7 +34,7 @@ class Osc:
 		part2 = (self.zs ** 3 - self.zs ** 4) / (Osc.rsquared + self.zs ** 2) ** 1.5
 		part3 = Osc.nturns * Osc.area * Osc.br * 0.5 * (part2 - part1)
 		self.emfs = part3 * self.vs
-		self.i = -1 * (np.diff(self.emfs) / (self.coilr + self.connectr))
+		self.i = -1 * (np.diff(self.emfs) / (2 * self.coilr + 2 * self.connectr))
 
 	def calc_forces(self):
 		springforces = (self.ctrs - self.zs) * self.ks
@@ -44,7 +44,7 @@ class Osc:
 		magforces *= [1, -1]
 		if self.log:
 			print "forces due to magnetism: ", magforces
-		self.fs = springforces + magforces
+		self.fs = springforces #+ magforces
 
 	def propagate(self):
 		self.calc_emfs()
@@ -56,18 +56,20 @@ class Osc:
 		self.zs += deltaz
 
 def main():
-	oscillator = Osc([20, 20], [0.084, 0.09], [0.0, 0.0], [0, 0], [0.0325, 0.0325], 2, 0.1, 0.0001)
+	oscillator = Osc([20, 20], [0.084, 0.084], [0.0, 0.0], [0, 0], [0.05, 0.05], 7, 0.1, 0.00001)
 	record_a = []
 	record_b = []
 	record_i = []
+	record_emf = []
 	for i in range(200000):
 		oscillator.propagate()
 		oscillator.log = False
-		if i % 100 == 0:
+		if i % 1000 == 0:
 			record_a.append(oscillator.zs[0])
 			record_b.append(oscillator.zs[1])
 			record_i.append(oscillator.i)
-			if i % 10000 == 0:
+			record_emf.append(oscillator.emfs[0])
+			if i % 100000 == 0:
 				oscillator.log = True
 				print "-----"
 				print "positions: ", oscillator.zs
@@ -77,6 +79,8 @@ def main():
 	plt.plot(record_a)
 	plt.show()
 	plt.plot(record_i)
+	plt.show()
+	plt.plot(record_emf)
 	plt.show()
 
 if __name__ == "__main__":
