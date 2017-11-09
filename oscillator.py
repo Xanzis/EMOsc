@@ -8,8 +8,8 @@ class Osc:
 	muzero = 1.25 * 10 ** -6
 	br = 2.5 # or this
 	d = 0.03 # length of magnet. For these things, see my notes
-	r = 0.011
-	rsquared = 0.011 ** 2
+	r = 0.022 # not actual, but doing this makes the emf curves better. Even higher values would be closer to observed emf
+	rsquared = 0.022 ** 2
 	coilrad = 0.03
 	coilradsquared = 0.03 ** 2
 
@@ -44,7 +44,7 @@ class Osc:
 		magforces *= [1, -1]
 		if self.log:
 			print "forces due to magnetism: ", magforces
-		self.fs = springforces #+ magforces
+		self.fs = springforces + magforces
 
 	def propagate(self):
 		self.calc_emfs()
@@ -56,12 +56,12 @@ class Osc:
 		self.zs += deltaz
 
 def main():
-	oscillator = Osc([20, 20], [0.084, 0.084], [0.0, 0.0], [0, 0], [0.05, 0.05], 7, 0.1, 0.00001)
+	oscillator = Osc([20, 20], [0.084, 0.09], [0.0, 0.0], [0, 0], [0.05, 0.05], 7, 0.1, 0.00001)
 	record_a = []
 	record_b = []
 	record_i = []
 	record_emf = []
-	for i in range(200000):
+	for i in range(2000000):
 		oscillator.propagate()
 		oscillator.log = False
 		if i % 1000 == 0:
