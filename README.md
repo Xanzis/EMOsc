@@ -1,0 +1,2 @@
+# EMOsc: Electromagnetic Oscillator Simulation
+This code was written to simulate two mechanical oscillators (weights on springs) with weak electromagnetic coupling. Run oscillator.py for pretty graphs (the rest is mostly calibration work for the hall effect sensors we were using)
